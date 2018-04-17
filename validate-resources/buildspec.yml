@@ -1,3 +1,4 @@
+---
 version: 0.1
 
 environment_variables:
@@ -18,5 +19,5 @@ phases:
   build:
     commands:
       - echo "Validating resources..."
-      - python validate-env.py
+      - python validate-resources/validate-env.py
       - exit $?
