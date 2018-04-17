@@ -1,7 +1,7 @@
 [
   {
   "ParameterKey": "CFNTemplateRepoName",
-  "ParameterValue": "cfn-nested-repo"
+  "ParameterValue": "https://github.com/mlhatfield/docker-encabulator.git"
   },
   {
   "ParameterKey": "ValidateResourcesRepoName",

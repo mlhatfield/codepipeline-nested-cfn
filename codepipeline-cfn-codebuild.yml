@@ -59,18 +59,18 @@ Resources:
                 Resource:
                   - Fn::Sub: arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${UATTopic}
                   - Fn::Sub: arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${ProdTopic}
-              -
-                Effect: "Allow"
-                Action:
-                  - "codecommit:ListBranches"
-                  - "codecommit:ListRepositories"
-                  - "codecommit:BatchGetRepositories"
-                  - "codecommit:Get*"
-                  - "codecommit:GitPull"
-                  - "codecommit:UploadArchive"
-                Resource:
-                  - Fn::Sub: arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${CFNTemplateRepoName}
-                  - Fn::Sub: arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${ValidateResourcesRepoName}
+              # -
+              #   Effect: "Allow"
+              #   Action:
+              #     - "codecommit:ListBranches"
+              #     - "codecommit:ListRepositories"
+              #     - "codecommit:BatchGetRepositories"
+              #     - "codecommit:Get*"
+              #     - "codecommit:GitPull"
+              #     - "codecommit:UploadArchive"
+              #   Resource:
+              #     - Fn::Sub: arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${CFNTemplateRepoName}
+              #     - Fn::Sub: arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${ValidateResourcesRepoName}
               -
                 Effect: "Allow"
                 Action:
@@ -288,6 +288,7 @@ Resources:
                 Resource:
                   - Fn::Sub: arn:aws:s3:::${ArtifactStoreS3Location}
                   - Fn::Sub: arn:aws:s3:::${ArtifactStoreS3Location}/*
+
   CodeBuildRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -318,17 +319,17 @@ Resources:
                   - "cloudformation:List*"
                 Resource:
                   - Fn::Sub: arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/Test-${AWS::StackName}*
-              -
-                Effect: "Allow"
-                Action:
-                  - "codecommit:ListBranches"
-                  - "codecommit:ListRepositories"
-                  - "codecommit:BatchGetRepositories"
-                  - "codecommit:Get*"
-                  - "codecommit:GitPull"
-                Resource:
-                  - Fn::Sub: arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${CFNTemplateRepoName}
-                  - Fn::Sub: arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${ValidateResourcesRepoName}
+              # -
+              #   Effect: "Allow"
+              #   Action:
+              #     - "codecommit:ListBranches"
+              #     - "codecommit:ListRepositories"
+              #     - "codecommit:BatchGetRepositories"
+              #     - "codecommit:Get*"
+              #     - "codecommit:GitPull"
+              #   Resource:
+              #     - Fn::Sub: arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${CFNTemplateRepoName}
+              #     - Fn::Sub: arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${ValidateResourcesRepoName}
               -
                 Effect: "Allow"
                 Action:
@@ -362,6 +363,7 @@ Resources:
                   - Fn::Sub: arn:aws:s3:::codepipeline-${AWS::Region}-*
                   - Fn::Sub: arn:aws:s3:::${ArtifactStoreS3Location}/*
                   - Fn::Sub: arn:aws:s3:::${ArtifactStoreS3Location}
+
   BuildCopyCFNProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -387,9 +389,15 @@ Resources:
           - Name: TEMPLATE_PREFIX
             Value: codebuild
       Source:
-        Location:
-          Fn::Sub: https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/${CFNTemplateRepoName}
-        Type: CODECOMMIT
+        Type: GITHUB
+        Auth:
+          -
+            Type: OAUTH
+          # Resource:
+        BuildSpec: buildspec.yml
+        GitCloneDepth: 5
+        InsecureSsl: true
+        Location: !Sub ${CFNTemplateRepoName}
       TimeoutInMinutes: 15
       EncryptionKey:
         Fn::Sub: arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/s3
@@ -417,8 +425,7 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/python:2.7.12
       Source:
-        Location:
-          Fn::Sub: https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/${ValidateResourcesRepoName}
+        Location: !Sub ${ValidateResourcesRepoName}
         Type: CODECOMMIT
       TimeoutInMinutes: 15
       EncryptionKey:
@@ -466,8 +473,7 @@ Resources:
                   Name: TestArtifacts
               Configuration:
                 BranchName: master
-                RepositoryName:
-                  Ref: ValidateResourcesRepoName
+                RepositoryName: !Ref ValidateResourcesRepoName
               RunOrder: 1
         -
           Name: Validate
